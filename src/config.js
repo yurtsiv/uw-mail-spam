@@ -21,6 +21,5 @@ const filename = 'email.txt';
 
 module.exports = {
   defaultMessage,
-  auth,
   filename,
 };
