@@ -3,7 +3,6 @@ const path = require('path');
 const { defaultMessage } = require('./config');
 const readline = require('readline');
 const { getMailers, randomElem, getAlreadySent } = require('./helpers');
-const { randomInt } = require('crypto');
 
 async function start() {
   const mailers = getMailers();
@@ -47,9 +46,6 @@ async function start() {
         erroredEmails.length
       );
     }
-
-    const waitTime = randomInt(1000, 2000);
-    await new Promise((res) => setTimeout(res, waitTime));
   };
 
   for await (const email of rl) {
