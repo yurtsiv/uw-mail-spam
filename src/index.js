@@ -1,29 +1,62 @@
 const fs = require('fs');
 const path = require('path');
-const nodeMailer = require('nodemailer-promise');
-const { filename } = require('./config');
-const { sendEmail } = require('./helpers');
+const { defaultMessage } = require('./config');
+const readline = require('readline');
+const { getMailers, randomElem } = require('./helpers');
+const { randomInt } = require('crypto');
 
-const mailer = nodeMailer.config({
-  host: 'smtp.mail.ru',
-  port: 465,
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.PASSWORD,
-  },
-});
+async function start() {
+  let mailers = getMailers();
+  setInterval(() => {
+    console.log('Refreshing mailers...');
+    mailers = getMailers();
+  }, 20000);
 
-const stream = fs.createReadStream(
-  path.join(__dirname, '../', filename),
-  'utf8'
-);
+  const stream = fs.createReadStream(
+    path.join(__dirname, '../', 'emails.txt'),
+    'utf-8'
+  );
 
-stream.on('data', (chunk) => {
-  const mails = chunk.split('\n');
+  const rl = readline.createInterface({
+    input: stream,
+    crlfDelay: Infinity,
+  });
 
-  Promise.all(mails.map((mail) => sendEmail(mailer, { to: mail.trim() })))
-    .then((res) => {
-      console.log(res);
-    })
-    .catch((err) => console.log(err));
-});
+  const erroredEmails = [];
+  let successCount = 0;
+
+  const send = async (to) => {
+    const { email: from, mailer } = randomElem(mailers);
+
+    try {
+      await mailer({ to, from, ...defaultMessage });
+      successCount++;
+      console.log('Sent from ', from, ' to ', to, ' Successes: ', successCount);
+    } catch (e) {
+      erroredEmails.push(to);
+      console.error(
+        'Error sending from ',
+        from,
+        ' to ',
+        to,
+        ' ',
+        e.message,
+        ' Errors: ',
+        erroredEmails.length
+      );
+    }
+
+    const waitTime = randomInt(2000, 5000);
+    await new Promise((res) => setTimeout(res, waitTime));
+  };
+
+  for await (const email of rl) {
+    await send(email.trim());
+  }
+
+  for (const email of erroredEmails) {
+    await send(email);
+  }
+}
+
+start();
