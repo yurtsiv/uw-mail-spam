@@ -1,15 +1,13 @@
 {
   "name": "fake-mails",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "main": "./src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": ""
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "nodemailer": "^6.7.2"
+  "dependencies": {
+    "nodemailer-promise": "^2.0.0"
   }
 }

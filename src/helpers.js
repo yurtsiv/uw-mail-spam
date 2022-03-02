@@ -1,19 +1,10 @@
 const { defaultMessage } = require("./config");
 
-function sendMail(transporter, message = defaultMessage) {
-  transporter.sendMail(
-    {
-      ...defaultMessage,
-      ...message,
-    },
-    (error, info) => {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email sent: " + info.response);
-      }
-    }
-  );
+function sendEmail(mailer, message = {}) {
+  return mailer({
+    ...defaultMessage,
+    ...message,
+  }).catch((err) => console.log(err));
 }
 
-module.exports = { sendMail };
+module.exports = { sendEmail };

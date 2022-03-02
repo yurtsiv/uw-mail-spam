@@ -1,10 +1,10 @@
 const fs = require("fs");
 const path = require("path");
-const nodemailer = require("nodemailer");
-const { auth } = require("./config");
-const { sendMail } = require("./helpers");
+const nodeMailer = require("nodemailer-promise");
+const { auth, filename } = require("./config");
+const { sendEmail } = require("./helpers");
 
-const transporter = nodemailer.createTransport({
+const mailer = nodeMailer.config({
   service: auth.service,
   auth: {
     user: auth.email,
@@ -13,14 +13,16 @@ const transporter = nodemailer.createTransport({
 });
 
 const stream = fs.createReadStream(
-  path.join(__dirname, "../", FILENAME),
+  path.join(__dirname, "../", filename),
   "utf8"
 );
 
 stream.on("data", (chunk) => {
   const mails = chunk.split("\n");
 
-  for (const mail of mails) {
-    sendMail(transporter, { to: mail.trim() });
-  }
+  Promise.all(mails.map((mail) => sendEmail(mailer, { to: mail.trim() })))
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => console.log(err));
 });
